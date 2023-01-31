@@ -11,7 +11,7 @@
 
 ## Table of Contents
 
--   [Who is this document for?](#who-is-this-document-for)
+-   [这个文档适合谁？](#这个文档适合谁？)
 -   [Why a tuning playbook?](#why-a-tuning-playbook)
 -   [Guide for starting a new project](#guide-for-starting-a-new-project)
     -   [Choosing the model architecture](#choosing-a-model-architecture)
@@ -42,111 +42,43 @@
 -   [Citing](#citing)
 -   [Contributing](#contributing)
 
-## Who is this document for?
+## 这个文档适合谁？
 
-This document is for engineers and researchers (both individuals and teams)
-interested in **maximizing the performance of deep learning models**. We assume
-basic knowledge of machine learning and deep learning concepts.
+本文档适用于有兴趣**最大化深度学习模型性能**的工程师和研究人员(包括个人和团队)。我们假设有机器学习和深度学习概念的基本知识。
 
-Our emphasis is on the **process of hyperparameter tuning**. We touch on other
-aspects of deep learning training, such as pipeline implementation and
-optimization, but our treatment of those aspects is not intended to be complete.
+我们的重点是**超参数调优的过程**。我们谈到了深度学习训练的其他方面，比如管道实现和优化，但我们对这些方面的处理并不打算是完整的。
 
-We assume the machine learning problem is a supervised learning problem or
-something that looks a lot like one (e.g. self-supervised). That said, some of
-the prescriptions in this document may also apply to other types of problems.
+我们假设机器学习问题是一个监督学习问题，或者看起来很像监督学习问题(例如，自监督)。也就是说，本文件中的一些处方也可能适用于其他类型的问题。
+ 
 
-## Why a tuning playbook?
+## 为什么要写这样一个文档？
 
-Currently, there is an astonishing amount of toil and guesswork involved in
-actually getting deep neural networks to work well in practice. Even worse, the
-actual recipes people use to get good results with deep learning are rarely
-documented. Papers gloss over the process that led to their final results in
-order to present a cleaner story, and machine learning engineers working on
-commercial problems rarely have time to take a step back and generalize their
-process. Textbooks tend to eschew practical guidance and prioritize fundamental
-principles, even if their authors have the necessary experience in applied work
-to provide useful advice. When preparing to create this document, we couldn't
-find any comprehensive attempt to actually explain *how to get good results with
-deep learning*. Instead, we found snippets of advice in blog posts and on social
-media, tricks peeking out of the appendix of research papers, occasional case
-studies about one particular project or pipeline, and a lot of confusion. There
-is a vast gulf between the results achieved by deep learning experts and less
-skilled practitioners using superficially similar methods. At the same time,
-these very experts readily admit some of what they do might not be
-well-justified. As deep learning matures and has a larger impact on the world,
-the community needs more resources covering useful recipes, including all the
-practical details that can be so critical for obtaining good results.
+目前，要让深度神经网络在实践中很好地工作，需要进行大量的辛劳和猜测。更糟糕的是，人们使用深度学习来获得良好结果的实际方法很少被记录下来。论文掩盖了导致最终结果的过程，以呈现一个更清晰的故事，而研究商业问题的机器学习工程师很少有时间退一步，概括他们的过程。教科书倾向于回避实际指导，优先考虑基本原则，即使它们的作者在应用工作中有必要的经验，可以提供有用的建议。在准备创建本文档时，我们找不到任何全面的尝试来真正解释如何使用深度学习获得良好的结果。相反，我们在博客文章和社交媒体上找到了一些建议的片段，在研究论文的附录中发现了一些技巧，偶尔会有关于某个特定项目或管道的案例研究，还有很多困惑。深度学习专家和不太熟练的从业者使用表面上相似的方法所取得的结果之间存在着巨大的鸿沟。与此同时，这些专家欣然承认，他们所做的一些事情可能并不完全合理。随着深度学习的成熟并对世界产生更大的影响，社区需要更多的资源来涵盖有用的菜谱，包括所有对获得良好结果至关重要的实际细节。
 
-We are a team of five researchers and engineers who have worked in deep learning
-for many years, some of us since as early as 2006. We have applied deep learning
-to problems in everything from speech recognition to astronomy, and learned a
-lot along the way. This document grew out of our own experience training neural
-networks, teaching new machine learning engineers, and advising our colleagues
-on the practice of deep learning. Although it has been gratifying to see deep
-learning go from a machine learning approach practiced by a handful of academic
-labs to a technology powering products used by billions of people, deep learning
-is still in its infancy as an engineering discipline and we hope this document
-encourages others to help systematize the field's experimental protocols.
+我们是一个由五名研究人员和工程师组成的团队，他们在深度学习领域工作了多年，其中一些人早在2006年就开始了。我们已经将深度学习应用于从语音识别到天文学的所有问题，并在此过程中学到了很多东西。这份文档源于我们自己训练神经网络的经验，教授新的机器学习工程师，并就深度学习的实践为我们的同事提供建议。尽管看到深度学习从少数学术实验室实践的机器学习方法发展为数十亿人使用的产品技术是令人欣慰的，但深度学习作为一门工程学科仍处于起步阶段，我们希望这份文件鼓励其他人帮助系统化该领域的实验协议。
 
-This document came about as we tried to crystalize our own approach to deep
-learning and thus it represents the opinions of the authors at the time of
-writing, not any sort of objective truth. Our own struggles with hyperparameter
-tuning made it a particular focus of our guidance, but we also cover other
-important issues we have encountered in our work (or seen go wrong). Our
-intention is for this work to be a living document that grows and evolves as our
-beliefs change. For example, the material on debugging and mitigating training
-failures would not have been possible for us to write two years ago since it is
-based on recent results and ongoing investigations. Inevitably, some of our
-advice will need to be updated to account for new results and improved
-workflows. We do not know the *optimal* deep learning recipe, but until the
-community starts writing down and debating different procedures, we cannot hope
-to find it. To that end, we would encourage readers who find issues with our
-advice to produce alternative recommendations, along with convincing evidence,
-so we can update the playbook. We would also love to see alternative guides and
-playbooks that might have different recommendations so we can work towards best
-practices as a community. Finally, any sections marked with a 🤖 emoji are places
-we would like to do more research. Only after trying to write this playbook did
-it become completely clear how many interesting and neglected research questions
-can be found in the deep learning practitioner's workflow.
+这份文件的出现是为了明确我们自己的深度学习方法，因此它代表了作者在写作时的观点，而不是任何形式的客观事实。我们自己在超参数调优方面的挣扎使它成为我们指南的一个特别重点，但我们也涵盖了我们在工作中遇到的其他重要问题(或看到的错误)。我们的意图是让这项工作成为一份活的文件，随着我们信念的改变而成长和发展。例如，关于调试和减轻训练失败的材料在两年前是不可能写出来的，因为它是基于最近的结果和正在进行的调查。不可避免地，我们的一些建议将需要更新，以说明新的结果和改进的工作流程。我们不知道最佳的深度学习配方，但在社区开始写下并讨论不同的过程之前，我们无法指望找到它。为此，我们鼓励那些对我们的建议有异议的读者提出替代建议，并提供令人信服的证据，这样我们就可以更新剧本。我们也很乐意看到可能有不同建议的替代指南和剧本，这样我们就可以作为一个社区努力实现最佳实践。最后，任何标有🤖表情符号的区域都是我们想做更多研究的地方。只有在尝试写完这本剧本之后，我才完全清楚在深度学习从业者的工作流程中可以找到多少有趣而被忽视的研究问题。
 
-## Guide for starting a new project
+## 如何开始一个新的project？
 
-Many of the decisions we make over the course of tuning can be made once at the
-beginning of a project and only occasionally revisited when circumstances
-change.
+我们在调优过程中所做的许多决定可以在项目开始时一次性做出，只有在环境发生变化时才会偶尔重新进行调整。
 
-Our guidance below makes the following assumptions:
+我们假设开始处理该问题时应该满足以下条件：
+-   问题定义已经清晰，已经完成了足够的数据清理等基本工作，因此在模型架构和训练配置上花费时间是有意义的。
+-   已经建立了一个进行训练和评估的流程，并且很容易为各种感兴趣的模型执行训练和预测工作。
+-   已经选择并实现了适当的评价指标。这些指标应该在部署环境中能够评估。
 
--   Enough of the essential work of problem formulation, data cleaning, etc. has
-    already been done that spending time on the model architecture and training
-    configuration makes sense.
--   There is already a pipeline set up that does training and evaluation, and it
-    is easy to execute training and prediction jobs for various models of
-    interest.
--   The appropriate metrics have been selected and implemented. These should be
-    as representative as possible of what would be measured in the deployed
-    environment.
+### 选择模型架构
 
-### Choosing the model architecture
+***总结:***  *通常开始一个新项目的时候，优先选择一个已经确定能够work的模型*
 
-***Summary:*** *When starting a new project, try to reuse a model that already
-works.*
-
--   Choose a well established, commonly used model architecture to get working
-    first. It is always possible to build a custom model later.
--   Model architectures typically have various hyperparameters that determine
-    the model's size and other details (e.g. number of layers, layer width, type
-    of activation function).
-    -   Thus, choosing the architecture really means choosing a family of
-        different models (one for each setting of the model hyperparameters).
-    -   We will consider the problem of choosing the model hyperparameters in
-        [Choosing the initial configuration](#choosing-the-initial-configuration)
-        and
+- 优先选择一个被广泛使用的模型，并且让他能够跑起来。因为后面去做自己的定制化模型通常来说难度不大。
+- 模型结构通常会因为多种超参数的影响而不同（例如，模型层数，宽度，激活函数的种类）
+    - 因此，选择架构实际上意味着选择一系列不同的模型(每个模型超参数设置对应一个模型)。
+    - 我们将在后面讨论如何设置模型部分的超参数 [Choosing the initial configuration](#choosing-the-initial-configuration)
+        和
         [A scientific approach to improving model performance](#a-scientific-approach-to-improving-model-performance).
--   When possible, try to find a paper that tackles something as close as
-    possible to the problem at hand and reproduce that model as a starting
-    point.
+- 如果可能的话，找一篇和你要处理的问题足够相似的paper，并且复现他，并以该模型作为起点去做后续的优化。
 
 ### Choosing the optimizer
 
@@ -190,22 +122,33 @@ hand.*
 to directly tune the validation set performance. Often, the ideal batch size
 will be the largest batch size supported by the available hardware.*
 
+***Summary:***  * 批处理大小决定了训练速度，不应该用来直接调优验证集的性能。理想的批大小通常是可用硬件支持的最大批大小。*
+
 -   The batch size is a key factor in determining the *training time* and
     *computing resource consumption*.
+-   Batchsize的大小通常是决定*训练时间* 和*训练消耗资源*的关键参数。
 -   Increasing the batch size will often reduce the training time. This can be
     highly beneficial because it, e.g.:
+- 增加Batchsize的大小通常可以减少训练时间，这通常是有益的，因为：
     -   Allows hyperparameters to be tuned more thoroughly within a fixed time
         interval, potentially resulting in a better final model.
     -   Reduces the latency of the development cycle, allowing new ideas to be
         tested more frequently.
--   Increasing the batch size may either decrease, increase, or not change the
-    resource consumption.
+    - 可以在固定的时间内尽可能多的调节超参数，从而得到一个更好的模型。
+    - 可以降低部署的延迟，可以让新的idea更快得到验证。
+   
+    
+-   Increasing the batch size may either decrease, increase, or not change the resource consumption.
+- 增加Batchsize的大小可能增加也可能减少计算消耗，但是也可能没有任何影响。
 -   The batch size should *not be* treated as a tunable hyperparameter for
     validation set performance.
+- 不应该将Batchsize当做一个可优化的超参数来调整验证集上的性能。
     -   As long as all hyperparameters are well-tuned (especially the learning
         rate and regularization hyperparameters) and the number of training
         steps is sufficient, the same final performance should be attainable
         using any batch size (see
+        [Shallue et al. 2018](https://arxiv.org/abs/1811.03600)).
+    - 当所有的超参数被设置好（特别是lr和正则化超参数），并且训练足够的时间，模型最终的性能跟Batchsize关系不大。(see
         [Shallue et al. 2018](https://arxiv.org/abs/1811.03600)).
     -   Please see [Why shouldn't the batch size be tuned to directly improve
         validation set
@@ -2007,20 +1950,28 @@ scale).">
 </details>
 
 ### Why shouldn't the batch size be tuned to directly improve validation set performance?
+### 为什么我们不应该通过调整Batchsize的大小来提升验证集上的性能？
 
 <details><summary><em>[Click to expand]</em></summary>
 <br>
 
 -   Changing the batch size *without changing any other details of the training pipeline* will often affect the validation set performance.
+- 在保持其他训练设置一致的情况下更改Batchsize大小通常会影响验证集上的性能。
 -   However, the difference in validation set performance between two batch sizes typically goes away if the training pipeline is optimized independently for each batch size.
+- 但是如果在不同的Batchsize下都单独调整优化超参数的话，这种差别可能并不会出现。
 -   The hyperparameters that interact most strongly with the batch size, and therefore are most important to tune separately for each batch size, are the optimizer hyperparameters (e.g. learning rate, momentum) and the regularization hyperparameters.
+- 与Batchsize大小相互作用最强烈的超参数是优化器超参数(例如学习率，动量)和正则化超参数，因此对于每个批处理大小分别进行调优是最重要的。
     - Smaller batch sizes introduce more noise into the training algorithm due to sample variance, and this noise can have a regularizing effect. Thus, larger batch sizes can be more prone to overfitting and may require stronger regularization and/or additional regularization techniques.
+    - 较小的Batchsize可以在训练过程中引入更多的噪声，这种噪声有一定的正则化效果。因此，较大的Batchsize大小可能更容易过度拟合，并且可能需要更强大的正则化和/或其他正则化技术。
 - In addition, [the number of training steps may need to be adjusted](#choosing-the-batch-size-to-minimize-training-time) when changing the batch size.
+- 除此之外，调整了Batchsize之后训练的步数也需要进行调整。[the number of training steps may need to be adjusted](#choosing-the-batch-size-to-minimize-training-time)
 -   Once all these effects are taken into account, there is currently no convincing evidence that the batch size affects the maximum achievable validation performance (see [Shallue et al. 2018](https://arxiv.org/abs/1811.03600)).
+- 当以上所有的因素都被考虑到之后，目前为止并没有显著的证据能够证明Batchsize的大小能够影响验证集上的最优性能。(see [Shallue et al. 2018](https://arxiv.org/abs/1811.03600)).
 
 </details>
 
 ### What are the update rules for all the popular optimization algorithms?
+### 常见流行的Optimizer对参数的更行步骤如下?
 
 <details><summary><em>[Click to expand]</em></summary>
 
