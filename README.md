@@ -540,7 +540,7 @@ trained on ImageNet.">
 
 </details>
 
-#### Automate generically useful plots
+#### 尽可能自动化地生成有用的图表
 
 <details><summary><em>[Click to expand]</em></summary>
 
