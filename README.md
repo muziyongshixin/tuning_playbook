@@ -80,97 +80,56 @@
         [A scientific approach to improving model performance](#a-scientific-approach-to-improving-model-performance).
 - 如果可能的话，找一篇和你要处理的问题足够相似的paper，并且复现他，并以该模型作为起点去做后续的优化。
 
-### Choosing the optimizer
+### 选择合适的Optimizer
 
-***Summary:*** *Start with the most popular optimizer for the type of problem at
-hand.*
+***Summary:***  *从针对当前问题的最流行的优化器开始*
 
--   No optimizer is the "best" across all types of machine learning problems and
-    model architectures. Even just
-    [comparing the performance of optimizers is a difficult task](https://arxiv.org/abs/1910.05446).
-    🤖
--   We recommend sticking with well-established, popular optimizers, especially
-    when starting a new project.
-    -   Ideally, choose the most popular optimizer used for the same type of
-        problem.
--   Be prepared to give attention to **\*****all****\*** hyperparameters of the
-    chosen optimizer.
-    -   Optimizers with more hyperparameters may require more tuning effort to
-        find the best configuration.
-    -   This is particularly relevant in the beginning stages of a project when
-        we are trying to find the best values of various other hyperparameters
-        (e.g. architecture hyperparameters) while treating optimizer
-        hyperparameters as
-        [nuisance parameters](#identifying-scientific-nuisance-and-fixed-hyperparameters).
-    -   It may be preferable to start with a simpler optimizer (e.g. SGD with
-        fixed momentum or Adam with fixed $\epsilon$, $\beta_{1}$, and
-        $\beta_{2}$) in the initial stages of the project and switch to a more
-        general optimizer later.
--   Well-established optimizers that we like include (but are not limited to):
+   
+- 目前来说并没有一个Optimizer对于所有的机器学习问题是最好的，因为就算单纯的[比较Optimizer的性能都是一个困难的问题](https://arxiv.org/abs/1910.05446). 🤖
+- 我们推荐在开始一个新的项目的时候优先选择广泛使用的的Optimizer。
+    - 理想情况下选择一个该领域下的最流行的Optimizer。
+=
+- 需要注意准备好关注所选优化器的**\*****所有****\***超参数。
+
+    - 拥有更多超参数的Optimizer往往需要更多的时间来找到最优配置。
+    - 这在项目的开始阶段特别相关，在这个阶段，我们试图找到各种超参数（例如架构超参数）的最佳值，同时将优化器超参数视为[干扰参数](#identifying-scientific-nuisance-and-fixed-hyperparameters).。
+    - 在项目开始的时候，优先选择一个简单一点的优化器（例如固定momentum参数的SGD，或者固定 $\epsilon$, $\beta_{1}$,  $\beta_{2}$ 等参数的Adam优化器），之后再切换到稍微复杂一些的优化器。
+- 
+-   我们喜欢的优秀的优化器包括（但不限于）:
     -   [SGD with momentum](#what-are-the-update-rules-for-all-the-popular-optimization-algorithms)
-        (we like the Nesterov variant)
+        (我们喜欢Nesterov变体)
     -   [Adam and NAdam](#what-are-the-update-rules-for-all-the-popular-optimization-algorithms),
-        which are more general than SGD with momentum. Note that Adam has 4
-        tunable hyperparameters
-        [and they can all matter](https://arxiv.org/abs/1910.05446)!
-        -   See
-            [How should Adam's hyperparameters be tuned?](#how-should-adams-hyperparameters-be-tuned)
+        它们比具有动量的SGD更通用。请注意，Adam有4个可调超参数，
+        [他们每一个都很重要](https://arxiv.org/abs/1910.05446)!
+        -   查看[How should Adam's hyperparameters be tuned?](#how-should-adams-hyperparameters-be-tuned)
 
-### Choosing the batch size
+### 选择Batchsize的大小
 
-***Summary:*** *The batch size governs the training speed and shouldn't be used
-to directly tune the validation set performance. Often, the ideal batch size
-will be the largest batch size supported by the available hardware.*
+***Summary:***  * Batchsize大小决定了训练速度，但不应该用来直接调优验证集的性能。理想的批大小通常是可用硬件支持的最大Batchsize。*
 
-***Summary:***  * 批处理大小决定了训练速度，不应该用来直接调优验证集的性能。理想的批大小通常是可用硬件支持的最大批大小。*
-
--   The batch size is a key factor in determining the *training time* and
-    *computing resource consumption*.
 -   Batchsize的大小通常是决定*训练时间* 和*训练消耗资源*的关键参数。
--   Increasing the batch size will often reduce the training time. This can be
-    highly beneficial because it, e.g.:
 - 增加Batchsize的大小通常可以减少训练时间，这通常是有益的，因为：
-    -   Allows hyperparameters to be tuned more thoroughly within a fixed time
-        interval, potentially resulting in a better final model.
-    -   Reduces the latency of the development cycle, allowing new ideas to be
-        tested more frequently.
     - 可以在固定的时间内尽可能多的调节超参数，从而得到一个更好的模型。
     - 可以降低部署的延迟，可以让新的idea更快得到验证。
    
-    
--   Increasing the batch size may either decrease, increase, or not change the resource consumption.
 - 增加Batchsize的大小可能增加也可能减少计算消耗，但是也可能没有任何影响。
--   The batch size should *not be* treated as a tunable hyperparameter for
-    validation set performance.
 - 不应该将Batchsize当做一个可优化的超参数来调整验证集上的性能。
-    -   As long as all hyperparameters are well-tuned (especially the learning
-        rate and regularization hyperparameters) and the number of training
-        steps is sufficient, the same final performance should be attainable
-        using any batch size (see
-        [Shallue et al. 2018](https://arxiv.org/abs/1811.03600)).
-    - 当所有的超参数被设置好（特别是lr和正则化超参数），并且训练足够的时间，模型最终的性能跟Batchsize关系不大。(see
-        [Shallue et al. 2018](https://arxiv.org/abs/1811.03600)).
-    -   Please see [Why shouldn't the batch size be tuned to directly improve
+    - 当所有的超参数被设置好（特别是lr和正则化超参数），并且训练足够的时间，模型最终的性能跟Batchsize关系不大。(参考[Shallue et al. 2018](https://arxiv.org/abs/1811.03600)).
+    -   其他查看 [Why shouldn't the batch size be tuned to directly improve
         validation set
         performance?](#why-shouldnt-the-batch-size-be-tuned-to-directly-improve-validation-set-performance)
 
-#### Determining the feasible batch sizes and estimating training throughput
-
+#### 确定可行的Batchsize大小和估计训练吞吐量
 
 <details><summary><em>[Click to expand]</em></summary>
 
 <br>
 
--   For a given model and optimizer, there will typically be a range of batch
-    sizes supported by the available hardware. The limiting factor is usually
-    accelerator memory.
--   Unfortunately, it can be difficult to calculate which batch sizes will fit
-    in memory without running, or at least compiling, the full training program.
--   The easiest solution is usually to run training jobs at different batch
-    sizes (e.g. increasing powers of 2) for a small number of steps until one of
-    the jobs exceeds the available memory.
--   For each batch size, we should train for long enough to get a reliable
-    estimate of the *training throughput*
+- 对于给定的模型和优化器，可支持的Batchsize通常有一定的范围，受到可用硬件的限制。通常，限制因素是GPU或加速器内存。
+- 不幸的是，在没有运行（或至少编译）完整的训练程序的情况下，计算哪些Batchsize可以适合内存可能很困难。
+最简单的解决方案通常是在不同的Batchsize（例如以2的幂数增加）运行训练作业，直到其中一个作业超出可用内存为止。
+- 对于每个Batchsize，我们应该训练足够长的时间，以获得可靠的训练吞吐量（*training throughput*）估计。
+
 
 <p align="center">training throughput = (# examples processed per second)</p>
 
@@ -178,29 +137,16 @@ will be the largest batch size supported by the available hardware.*
 
 <p align="center">time per step = (batch size) / (training throughput)</p>
 
--   When the accelerators aren't yet saturated, if the batch size doubles, the
-    training throughput should also double (or at least nearly double).
-    Equivalently, the time per step should be constant (or at least nearly
-    constant) as the batch size increases.
--   If this is not the case then the training pipeline has a bottleneck such as
-    I/O or synchronization between compute nodes. This may be worth diagnosing
-    and correcting before proceeding.
--   If the training throughput increases only up to some maximum batch size,
-    then we should only consider batch sizes up to that maximum batch size, even
-    if a larger batch size is supported by the hardware.
-    -   All benefits of using a larger batch size assume the training throughput
-        increases. If it doesn't, fix the bottleneck or use the smaller batch
-        size.
-    -   **Gradient accumulation** simulates a larger batch size than the
-        hardware can support and therefore does not provide any throughput
-        benefits. It should generally be avoided in applied work.
--   These steps may need to be repeated every time the model or optimizer is
-    changed (e.g. a different model architecture may allow a larger batch size
-    to fit in memory).
+- 当加速器尚未饱和时，如果Batchsize大小翻倍，训练吞吐量也应该翻倍（或者至少接近翻倍）。 等价地，当Batchsize增加时，每步骤的时间应该是恒定的（或者至少接近恒定）。
+- 如果不是这种情况，那么训练管道就有一个瓶颈，例如计算节点之间的I / O或同步。 在继续之前，我们需要找出问题所在。
+- 如果训练吞吐量仅增加到某个最大Batchsize，则我们应该仅考虑这个最大Batchsize以内的Batchsize，即使硬件支持更大的Batchsize。（例如Batchsize从128 调整到256吞吐量没有增加，那么即使GPU支持更大的Batchsize，我们也应该使用128作为合适的Batchsize。）
+- 使用更大Batchsize的所有优势都假设训练吞吐量增加。如果没有，请修复瓶颈或使用较小的Batchsize。
+- 梯度累积模拟硬件无法支持的更大Batchsize，因此不提供任何吞吐量效益。在实际工作中通常应该避免使用。
+- 每次更改模型或优化器时（例如，不同的模型架构可以允许更大的Batchsize），都可能需要重复这些步骤。
 
 </details>
 
-#### Choosing the batch size to minimize training time
+#### 选择Batchsize以最大程度地减少训练时间
 
 <details><summary><em>[Click to expand]</em></summary>
 
@@ -209,580 +155,289 @@ will be the largest batch size supported by the available hardware.*
 
 <p align="center">Training time = (time per step) x (total number of steps)</p>
 
--   We can often consider the time per step to be approximately constant for all
-    feasible batch sizes. This is true when there is no overhead from parallel
-    computations and all training bottlenecks have been diagnosed and corrected
-    (see the
-    [previous section](#determining-the-feasible-batch-sizes-and-estimating-training-throughput)
-    for how to identify training bottlenecks). In practice, there is usually at
-    least some overhead from increasing the batch size.
--   As the batch size increases, the total number of steps needed to reach a
-    fixed performance goal typically decreases (provided all relevant
-    hyperparameters are re-tuned when the batch size is changed;
-    [Shallue et al. 2018](https://arxiv.org/abs/1811.03600)).
-    -   E.g. Doubling the batch size might halve the total number of steps
-        required. This is called **perfect scaling**.
-    -   Perfect scaling holds for all batch sizes up to a critical batch size,
-        beyond which one achieves diminishing returns.
-    -   Eventually, increasing the batch size no longer reduces the number of
-        training steps (but never increases it).
--   Therefore, the batch size that minimizes training time is usually the
-    largest batch size that still provides a reduction in the number of training
-    steps required.
-    -   This batch size depends on the dataset, model, and optimizer, and it is
-        an open problem how to calculate it other than finding it experimentally
-        for every new problem. 🤖
-    -   When comparing batch sizes, beware the distinction between an example
-        budget/[epoch](https://developers.google.com/machine-learning/glossary#epoch)
-        budget (running all experiments while fixing the number of training
-        example presentations) and a step budget (running all experiments with
-        the number of training steps fixed).
-        -   Comparing batch sizes with an epoch budget only probes the perfect
-            scaling regime, even when larger batch sizes might still provide a
-            meaningful speedup by reducing the number of training steps
-            required.
-    -   Often, the largest batch size supported by the available hardware will
-        be smaller than the critical batch size. Therefore, a good rule of thumb
-        (without running any experiments) is to use the largest batch size
-        possible.
--   There is no point in using a larger batch size if it ends up increasing the
-    training time.
+-  通常，我们可以认为对于所有可行的Batchsize，每步时间大致相同。当没有并行计算的开销，所有训练瓶颈都已诊断和修正时，这是正确的（有关如何识别训练瓶颈，请参见[上一节](#确定可行的Batchsize大小和估计训练吞吐量)）。
+实际上，随着Batchsize的增加，通常至少会有一些开销。
+- 随着Batchsize的增加，需要达到固定性能目标的总步数通常会减少（前提是当Batchsize更改时所有相关超参数都已重新调整；参见[Shallue et al. 2018](https://arxiv.org/abs/1811.03600)）。
+    - 例如，将Batchsize翻倍可能会将所需总步数减半。这称为**完美缩放**。
+    - 对于所有Batchsize，完美缩放适用于关键Batchsize之前，超出该关键Batchsize大小后收益逐渐减少。
+    - 最终，增加Batchsize大小不再减少训练步数（但也不会增加）。
+- 因此，最小化训练时间的Batchsize通常是可以减少训练步骤数量的最大Batchsize。
+
+    - 这个Batchsize取决于数据集，模型和优化器，如何计算它，而不是为每个新问题进行实验性查找，是一个悬而未决的问题。 🤖
+    - 在比较Batchsize时，请注意[样本预算/时期预算](https://developers.google.com/machine-learning/glossary#epoch)（在保持训练样本展示数量不变的情况下运行所有实验）和步骤预算（在保持训练步骤数量不变的情况下运行所有实验）之间的区别。
+    - 使用样本预算比较Batchsize只会探测完美缩放，即使更大的Batchsize仍然可以通过减少训练步骤数量来提供有意义的加速。
+    - 通常，可用硬件支持的最大Batchsize将小于关键Batchsize。因此，一个很好的经验法则（在不进行任何实验的情况下）是使用尽可能大的Batchsize。
+- 如果使用更大的Batchsize最终增加了训练时间，那么使用更大的Batchsize是没有意义的。
+
 
 </details>
 
-#### Choosing the batch size to minimize resource consumption
+#### 选择Batchsize以最小化资源使用量
 
 <details><summary><em>[Click to expand]</em></summary>
 
 <br>
 
-
--   There are two types of resource costs associated with increasing the batch
-    size:
-    1.  *Upfront costs*, e.g. purchasing new hardware or rewriting the training
-        pipeline to implement multi-GPU / multi-TPU training.
-    2.  *Usage costs*, e.g. billing against the team's resource budgets, billing
-        from a cloud provider, electricity / maintenance costs.
--   If there are significant upfront costs to increasing the batch size, it
-    might be better to defer increasing the batch size until the project has
-    matured and it is easier to assess the cost-benefit tradeoff. Implementing
-    multi-host parallel training programs can introduce
-    [bugs](#considerations-for-multi-host-pipelines) and
-    [subtle issues](#batch-normalization-implementation-details) so it is
-    probably better to start off with a simpler pipeline anyway. (On the other
-    hand, a large speedup in training time might be very beneficial early in the
-    process when a lot of tuning experiments are needed).
--   We refer to the total usage cost (which may include multiple different kinds
-    of costs) as the "resource consumption". We can break down the resource
-    consumption into the following components:
+- 增加 batch size 的时候，与其相关的资源成本有两种：
+    1. 前期成本，例如购买新硬件或者重写训练流程以实现多 GPU/多 TPU 训练。
+    2. 使用成本，例如团队资源预算、云提供商计费、电力/维护成本。
+- 如果增加 batch size 的前期成本很高，那么最好等项目成熟后再评估成本效益权衡。实现多主机并行训练程序可能会带来 bugs 和 其他诡异的问题，所以最好先使用简单的流程。(另一方面，当需要大量的调试实验时，训练时间的大幅加快可能非常有益)。
+- 我们称总的使用成本（可能包括多种不同类型的成本）为“资源消耗”。我们可以将资源消耗分解为以下组成部分：
 
 <p align="center">Resource consumption = (resource consumption per step) x (total number of steps)</p>
 
--   Increasing the batch size usually allows us to
-    [reduce the total number of steps](#choosing-the-batch-size-to-minimize-training-time).
-    Whether the resource consumption increases or decreases will depend on how
-    the consumption per step changes.
-    -   Increasing the batch size might *decrease* the resource consumption. For
-        example, if each step with the larger batch size can be run on the same
-        hardware as the smaller batch size (with only a small increase in time
-        per step), then any increase in the resource consumption per step might
-        be outweighed by the decrease in the number of steps.
-    -   Increasing the batch size might *not change* the resource consumption.
-        For example, if doubling the batch size halves the number of steps
-        required and doubles the number of GPUs used, the total consumption (in
-        terms of GPU-hours) will not change.
-    -   Increasing the batch size might *increase* the resource consumption. For
-        example, if increasing the batch size requires upgraded hardware, the
-        increase in consumption per step might outweigh the reduction in the
-        number of steps.
+- 增加Batchsize通常允许我们减少总步数。资源消耗的增加或减少取决于每步的消耗如何变化。
+
+- 增加Batchsize可能会降低资源消耗。例如，如果更大批次的每一步都可以在与较小Batchsize相同的硬件上运行（每步只增加很少的时间），那么每步的资源消耗增加可能被步数减少的降低所抵消。
+- 增加Batchsize可能不会改变资源消耗。例如，如果将Batchsize加倍会减少一半的步数并使用两倍的GPU，则总消耗（以GPU小时计）不会改变。
+- 增加Batchsize可能会增加资源消耗。例如，如果增加Batchsize需要升级硬件，每步的消耗增加可能会超过步数的减少。
+
 
 </details>
 
-#### Changing the batch size requires re-tuning most hyperparameters
+####  通常更改Batchsize需要重新搜索绝大部分超参数。
+
+<details><summary><em>[Click to expand]</em></summary>
+
+<br>
+
+- 大多数超参数的最佳值对Batchsize敏感。因此，改变Batchsize通常需要重新开始调参过程。
+- 优化器超参数与Batchsize最密切相关，因此必须针对每个Batchsize分别调整(例如学习率，动量momentum）和正则化超参数。
+- 在开始项目时选择Batchsize时要注意这一点。如果需要稍后更改Batchsize，重新为新的Batchsize调整所有内容可能困难，耗时和昂贵。
+
+
+</details>
+
+#### BatchNorm(BN) 跟Batchsize的关系
 
 <details><summary><em>[Click to expand]</em></summary>
 
 <br>
 
 
--   The optimal values of most hyperparameters are sensitive to the batch size.
-    Therefore, changing the batch size typically requires starting the tuning
-    process all over again.
--   The hyperparameters that interact most strongly with the batch size, and therefore are most important to tune separately for each batch size, are the optimizer hyperparameters (e.g. learning rate, momentum) and the regularization hyperparameters.
--   Keep this in mind when choosing the batch size at the start of a project. If
-    you need to switch to a different batch size later on, it might be
-    difficult, time consuming, and expensive to re-tune everything for the new
-    batch size.
+-   批量范数（BN）比较复杂，一般来说，应该使用不同于梯度计算的Batchsize来计算统计信息。有关详细讨论，请参阅[批处理规范部分](#batch-normalization-implementation-details)。
 
 </details>
 
-#### How batch norm interacts with the batch size
-
-<details><summary><em>[Click to expand]</em></summary>
-
-<br>
+### 选择初始配置
 
 
--   Batch norm is complicated and, in general, should use a different batch size
-    than the gradient computation to compute statistics. See the
-    [batch norm section](#batch-normalization-implementation-details) for a
-    detailed discussion.
+- 在开始超参数调优之前，我们必须确定起始点。这包括指定(1)模型配置(例如层数)，(2)优化器超参数(例如学习率)，以及(3)训练迭代次数。
 
-</details>
+- 确定这个初始配置将需要一些手动配置的训练运行和试错。
 
-### Choosing the initial configuration
+- 我们的指导原则是找到一个简单、相对快速、相对低资源消耗的配置，从而获得“合理”的结果。
 
--   Before beginning hyperparameter tuning we must determine the starting point.
-    This includes specifying (1) the model configuration (e.g. number of
-    layers), (2) the optimizer hyperparameters (e.g. learning rate), and (3) the
-    number of training steps.
--   Determining this initial configuration will require some manually configured
-    training runs and trial-and-error.
--   Our guiding principle is to find a simple, relatively fast, relatively
-    low-resource-consumption configuration that obtains a "reasonable" result.
-    -   "Simple" means avoiding bells and whistles wherever possible; these can
-        always be added later. Even if bells and whistles prove helpful down the
-        road, adding them in the initial configuration risks wasting time tuning
-        unhelpful features and/or baking in unnecessary complications.
-        -   For example, start with a constant learning rate before adding fancy
-            decay schedules.
-    -   Choosing an initial configuration that is fast and consumes minimal
-        resources will make hyperparameter tuning much more efficient.
-        -   For example, start with a smaller model.
-    -   "Reasonable" performance depends on the problem, but at minimum means
-        that the trained model performs much better than random chance on the
-        validation set (although it might be bad enough to not be worth
-        deploying).
--   Choosing the number of training steps involves balancing the following
-    tension:
-    -   On the one hand, training for more steps can improve performance and
-        makes hyperparameter tuning easier (see
-        [Shallue et al. 2018](https://arxiv.org/abs/1811.03600)).
-    -   On the other hand, training for fewer steps means that each training run
-        is faster and uses fewer resources, boosting tuning efficiency by
-        reducing the time between cycles and allowing more experiments to be run
-        in parallel. Moreover, if an unnecessarily large step budget is chosen
-        initially, it might be hard to change it down the road, e.g. once the
-        learning rate schedule is tuned for that number of steps.
+    - “简单”意味着尽可能避免花哨的东西;这些都可以在以后添加。即使事后证明这些功能是有用的，在初始配置中添加它们也有浪费时间调整无用功能和/或陷入不必要的复杂性的风险。
+    - 例如，在添加花哨的衰减（lr decay schedules）之前，先从恒定的学习率开始。
+    - 选择一个快速且消耗最少资源的初始配置将使超参数调优更加有效。例如，从一个较小的模型开始。
+    - “合理的”性能取决于问题本身，但至少意味着经过训练的模型在验证集上的表现比随机机会要好得多(尽管它可能坏到不值得部署)。
 
-## A scientific approach to improving model performance
+- 选择训练步数涉及到平衡以下问题:
 
-For the purposes of this document, the ultimate goal of machine learning
-development is to maximize the utility of the deployed model. Even though many
-aspects of the development process differ between applications (e.g. length of
-time, available computing resources, type of model), we can typically use the
-same basic steps and principles on any problem.
+    - 一方面，训练更多的步骤可以提高性能，并使超参数调优更容易(参见[Shallue et al. 2018](https://arxiv.org/abs/1811.03600))。
+- 另一方面，训练步骤更少意味着每次训练运行更快，使用更少的资源，通过减少周期之间的时间和允许更多的实验并行运行来提高调优效率。此外，如果一开始选择了一个不必要的大步骤预算，那么在接下来的过程中可能很难改变它，例如，一旦学习率计划针对该步骤数进行了调整。
 
-Our guidance below makes the following assumptions:
 
--   There is already a fully-running training pipeline along with a
-    configuration that obtains a reasonable result.
--   There are enough computational resources available to conduct meaningful
-    tuning experiments and run at least several training jobs in parallel.
+## 提高模型性能的科学方法
+
+就本文而言，机器学习开发的最终目标是最大化已部署模型的效用。尽管不同应用程序的开发过程在许多方面有所不同(例如，时间长度、可用的计算资源、模型类型)，但我们通常可以在任何问题上使用相同的基本步骤和原则。
+
+我们的指导原则基于以下假设:
+
+- 已经有一个完全运行的训练流程，以及一个获得合理结果的配置。
+- 有足够的计算资源来进行有意义的调优实验，并并行运行至少几个训练作业。
+ 
 
 ### The incremental tuning strategy
+### 增量调优策略
 
-***Summary:*** *Start with a simple configuration and incrementally make
-improvements while building up insight into the problem. Make sure that any
-improvement is based on strong evidence to avoid adding unnecessary complexity.*
+***总结:*** 从一个简单的配置开始，逐步改进，同时深入了解问题。确保任何改进都是基于强有力的证据，以避免增加不必要的复杂性。
 
--   Our ultimate goal is to find a configuration that maximizes the performance
-    of our model.
-    -   In some cases, our goal will be to maximize how much we can improve the
-        model by a fixed deadline (e.g. submitting to a competition).
-    -   In other cases, we want to keep improving the model indefinitely (e.g.
-        continually improving a model used in production).
--   In principle, we could maximize performance by using an algorithm to
-    automatically search the entire space of possible configurations, but this
-    is not a practical option.
-    -   The space of possible configurations is extremely large and there are
-        not yet any algorithms sophisticated enough to efficiently search this
-        space without human guidance.
--   Most automated search algorithms rely on a hand-designed *search space* that
-    defines the set of configurations to search in, and these search spaces can
-    matter quite a bit.
--   The most effective way to maximize performance is to start with a simple
-    configuration and incrementally add features and make improvements while
-    building up insight into the problem.
-    -   We use automated search algorithms in each round of tuning and
-        continually update our search spaces as our understanding grows.
--   As we explore, we will naturally find better and better configurations and
-    therefore our "best" model will continually improve.
-    -   We call it a *launch* when we update our best configuration (which may
-        or may not correspond to an actual launch of a production model).
-    -   For each launch, we must make sure that the change is based on strong
-        evidence – not just random chance based on a lucky configuration – so
-        that we don't add unnecessary complexity to the training pipeline.
+- 我们的最终目标是找到一种配置，使我们的模型的性能最大化。
+    - 在某些情况下，我们的目标将是在一个固定的截止日期前最大化我们可以改进模型的程度(例如提交给一个比赛)。
+    - 在其他情况下，我们希望无限地改进模型(例如，不断地改进生产中使用的模型)。
+- 原则上，我们可以通过使用算法自动搜索可能配置的整个空间来最大化性能，但这不是一个实际可操作的选择。
+    - 因为可能配置的空间非常大，目前还没有任何复杂的算法能够在没有人类引导的情况下有效地搜索这整个空间。
+- 大多数自动搜索算法依赖于手动设计的搜索空间，该空间定义了要搜索的配置集，而这些搜索空间可能相当重要。
+- 最大化性能的最有效方法是从简单的配置开始，逐步添加功能，并在深入了解问题的同时进行改进。
+    - 我们在每一轮调优中使用自动搜索算法，并随着我们理解的增长不断更新我们的搜索空间。
+- 随着探索，我们自然会发现更好的配置，因此我们的“最佳”模型将不断改进。
+    - 当我们更新我们的最佳配置时，我们称之为启动(这可能对应于生产模型的实际启动，也可能不对应)。
+    - 对于每次启动，我们必须确保改变是基于强有力的证据——而不是基于幸运配置的随机机会——这样我们就不会给训练流程增加不必要的复杂性。
+ 
+- 概括来说，我们的增量调优策略包括重复以下四个步骤:
 
-At a high level, our incremental tuning strategy involves repeating the
-following four steps:
+1. 为下一轮实验确定一个适当范围的目标。
+2. 设计并运行一组朝着这个目标前进的实验。
+3. 从结果中学习我们能学到的东西。
+4. 考虑是否启动新的最佳配置。
 
-1.  Identify an appropriately-scoped goal for the next round of experiments.
-2.  Design and run a set of experiments that makes progress towards this goal.
-3.  Learn what we can from the results.
-4.  Consider whether to launch the new best configuration.
+本节的其余部分将更详细地考虑这一策略。
 
-The remainder of this section will consider this strategy in much greater
-detail.
+### 探索vs开发
+***总结:*** 大多数时候，我们的主要目标是深入了解问题。
 
-### Exploration vs exploitation
+- 尽管有人可能会认为我们将花费大部分时间在验证集上试图最大化性能，但实际上我们将花费大部分时间试图深入了解问题，而相对较少的时间贪婪地集中在验证错误上。
+    - 换句话说，我们把大部分时间花在了“探索”上，而只花了一小部分时间在“开发”上。
+- 从长远来看，如果我们想要最大化我们的最终表现，理解问题是至关重要的。将洞察力置于短期收益之上可以帮助我们:
+    - 避免仅仅由于历史事故而在运行良好的运行中出现不必要的更改。
+    - 确定验证错误对哪些超参数最敏感，哪些超参数相互作用最多，因此需要一起重新调优，以及哪些超参数对其他变化相对不敏感，因此可以在未来的实验中修复。
+    - 建议可以尝试的潜在新特性，例如如果过度拟合是一个问题，可以使用新的正则化器。
+    - 识别出没有帮助的特征，因此可以删除，从而降低未来实验的复杂性。
+    - 认识到何时超参数调优的改进可能已经饱和。
+    - 缩小最优值周围的搜索空间，以提高调优效率。
+- 当我们最终准备好贪心策略提升模型性能时，我们可以纯粹地关注验证错误，即使实验不能最大限度地提供关于调优问题结构的信息。
 
-***Summary:*** *Most of the time, our primary goal is to gain insight into the
-problem.*
+### 选择下一轮实验的目标
+***总结:*** 每一轮实验都应该有一个明确的目标，并且在实验范围上要足够窄，使实验能够朝着目标前进。
 
--   Although one might think we would spend most of our time trying to maximize
-    performance on the validation set, in practice we spend the majority of our
-    time trying to gain insight into the problem, and comparatively little time
-    greedily focused on the validation error.
-    -   In other words, we spend most of our time on "exploration" and only a
-        small amount on "exploitation".
--   In the long run, understanding the problem is critical if we want to
-    maximize our final performance. Prioritizing insight over short term gains
-    can help us:
-    -   Avoid launching unnecessary changes that happened to be present in
-        well-performing runs merely through historical accident.
-    -   Identify which hyperparameters the validation error is most sensitive
-        to, which hyperparameters interact the most and therefore need to be
-        re-tuned together, and which hyperparameters are relatively insensitive
-        to other changes and can therefore be fixed in future experiments.
-    -   Suggest potential new features to try, such as new regularizers if
-        overfitting is an issue.
-    -   Identify features that don't help and therefore can be removed, reducing
-        the complexity of future experiments.
-    -   Recognize when improvements from hyperparameter tuning have likely
-        saturated.
-    -   Narrow our search spaces around the optimal value to improve tuning
-        efficiency.
--   When we are eventually ready to be greedy, we can focus purely on the
-    validation error even if the experiments aren't maximally informative about
-    the structure of the tuning problem.
+- 每一轮实验都应该有一个明确的目标，并且范围要足够窄，这样实验才能朝着目标前进:如果我们试图同时添加多个特征或回答多个问题，我们可能无法理清对结果的单独影响。
+- 目标包括:
+    - 尝试对训练流程进行潜在的改进(例如，一个新的正则化器，预处理选择等)。
+    - 理解特定模型超参数的影响(例如激活函数)
+    - 尽可能地最大化验证错误。
 
-### Choosing the goal for the next round of experiments
 
-***Summary:*** *Each round of experiments should have a clear goal and be
-sufficiently narrow in scope that the experiments can actually make progress
-towards the goal.*
+### 设计下一轮实验
 
--   Each round of experiments should have a clear goal and be sufficiently
-    narrow in scope that the experiments can actually make progress towards the
-    goal: if we try to add multiple features or answer multiple questions at
-    once, we may not be able to disentangle the separate effects on the results.
--   Example goals include:
-    -   Try a potential improvement to the pipeline (e.g. a new regularizer,
-        preprocessing choice, etc.).
-    -   Understand the impact of a particular model hyperparameter (e.g. the
-        activation function)
-    -   Greedily maximize validation error.
+***总结:*** 对于实验目标来说，首先需要确定哪些超参数是科学的超参数（scientific parameters）、哪些是干扰的超参数（nuisance hyperparameters）以及哪些是固定的超参数（fixed parameters）。
+在优化干扰超参数的时候来比较不同的科学超参数对实验结果的影响。
+同时需要选择干扰参数的搜索空间来平衡资源成本与科学价值。
 
-### Designing the next round of experiments
-
-***Summary:*** *Identify which hyperparameters are scientific, nuisance, and
-fixed hyperparameters for the experimental goal. Create a sequence of studies to
-compare different values of the scientific hyperparameters while optimizing over
-the nuisance hyperparameters. Choose the search space of nuisance
-hyperparameters to balance resource costs with scientific value.*
-
-#### Identifying scientific, nuisance, and fixed hyperparameters
+#### 识别科学的、干扰的和固定的超参数 （scientific, nuisance, and fixed hyperparameters）
 
 <details><summary><em>[Click to expand]</em></summary>
 
 <br>
 
--   For a given goal, all hyperparameters will be either **scientific
-    hyperparameters**, **nuisance hyperparameters**, or **fixed
-    hyperparameters**.
-    -   Scientific hyperparameters are those whose effect on the model's
-        performance we're trying to measure.
-    -   Nuisance hyperparameters are those that need to be optimized over in
-        order to fairly compare different values of the scientific
-        hyperparameters. This is similar to the statistical concept of
-        [nuisance parameters](https://en.wikipedia.org/wiki/Nuisance_parameter).
-    -   Fixed hyperparameters will have their values fixed in the current round
-        of experiments. These are hyperparameters whose values do not need to
-        (or we do not want them to) change when comparing different values of
-        the scientific hyperparameters.
-        -   By fixing certain hyperparameters for a set of experiments, we must
-            accept that conclusions derived from the experiments might not be
-            valid for other settings of the fixed hyperparameters. In other
-            words, fixed hyperparameters create caveats for any conclusions we
-            draw from the experiments.
--   For example, if our goal is to "determine whether a model with more hidden
-    layers will reduce validation error", then the number of hidden layers is a
-    scientific hyperparameter.
-    -   The learning rate is a nuisance hyperparameter because we can only
-        fairly compare models with different numbers of hidden layers if the
-        learning rate is tuned separately for each number of layers (the optimal
-        learning rate generally depends on the model architecture).
-    -   The activation function could be a fixed hyperparameter if we have
-        determined in prior experiments that the best choice of activation
-        function is not sensitive to model depth, or if we are willing to limit
-        our conclusions about the number of hidden layers to only cover this
-        specific choice of activation function. Alternatively, it could be a
-        nuisance parameter if we are prepared to tune it separately for each
-        number of hidden layers.
--   Whether a particular hyperparameter is a scientific hyperparameter, nuisance
-    hyperparameter, or fixed hyperparameter is not inherent to that
-    hyperparameter, but changes depending on the experimental goal.
-    -   For example, the choice of activation function could be a scientific
-        hyperparameter (is ReLU or tanh a better choice for our problem?), a
-        nuisance hyperparameter (is the best 5-layer model better than the best
-        6-layer model when we allow several different possible activation
-        functions?), or a fixed hyperparameter (for ReLU nets, does adding batch
-        normalization in a particular position help?).
--   When designing a new round of experiments, we first identify the scientific
-    hyperparameters for our experimental goal.
-    -   At this stage, we consider all other hyperparameters to be nuisance
-        hyperparameters.
--   Next, we convert some of the nuisance hyperparameters into fixed
-    hyperparameters.
-    -   With limitless resources, we would leave all non-scientific
-        hyperparameters as nuisance hyperparameters so that the conclusions we
-        draw from our experiments are free from caveats about fixed
-        hyperparameter values.
-    -   However, the more nuisance hyperparameters we attempt to tune, the
-        greater the risk we fail to tune them sufficiently well for each setting
-        of the scientific hyperparameters and end up reaching the wrong
-        conclusions from our experiments.
-        -   As described
-            [below](#striking-a-balance-between-informative-and-affordable-experiments),
-            we could counter this risk by increasing the computational budget,
-            but often our maximum resource budget is less than would be needed
-            to tune over all non-scientific hyperparameters.
-    -   We choose to convert a nuisance hyperparameter into a fixed
-        hyperparameter when, in our judgment, the caveats introduced by fixing
-        it are less burdensome than the cost of including it as a nuisance
-        hyperparameter.
-        -   The more a given nuisance hyperparameter interacts with the
-            scientific hyperparameters, the more damaging it is to fix its
-            value. For example, the best value of the weight decay strength
-            typically depends on the model size, so comparing different model
-            sizes assuming a single specific value of the weight decay would not
-            be very insightful.
--   Although the type we assign to each hyperparameter depends on the
-    experimental goal, we have the following rules of thumb for certain
-    categories of hyperparameters:
-    -   Of the various optimizer hyperparameters (e.g. the learning rate,
-        momentum, learning rate schedule parameters, Adam betas etc.), at least
-        some of them will be nuisance hyperparameters because they tend to
-        interact the most with other changes.
-        -   They are rarely scientific hyperparameters because a goal like "what
-            is the best learning rate for the current pipeline?" doesn't give
-            much insight – the best setting could easily change with the next
-            pipeline change anyway.
-        -   Although we might fix some of them occasionally due to resource
-            constraints or when we have particularly strong evidence that they
-            don't interact with the scientific parameters, we should generally
-            assume that optimizer hyperparameters must be tuned separately to
-            make fair comparisons between different settings of the scientific
-            hyperparameters, and thus shouldn't be fixed.
-            -   Furthermore, we have no *a priori* reason to prefer one
-                optimizer hyperparameter value over another (e.g. they don't
-                usually affect the computational cost of forward passes or
-                gradients in any way).
-    -   In contrast, the *choice* of optimizer is typically a scientific
-        hyperparameter or fixed hyperparameter.
-        -   It is a scientific hyperparameter if our experimental goal involves
-            making fair comparisons between two or more different optimizers
-            (e.g. "determine which optimizer produces the lowest validation
-            error in a given number of steps").
-        -   Alternatively, we might make it a fixed hyperparameter for a variety
-            of reasons, including (1) prior experiments make us believe that the
-            best optimizer for our problem is not sensitive to current
-            scientific hyperparameters; and/or (2) we prefer to compare values
-            of the scientific hyperparameters using this optimizer because its
-            training curves are easier to reason about; and/or (3) we prefer to
-            use this optimizer because it uses less memory than the
-            alternatives.
-    -   Hyperparameters introduced by a regularization technique are typically
-        nuisance hyperparameters, but whether or not we include the
-        regularization technique at all is a scientific or fixed hyperparameter.
-        -   For example, dropout adds code complexity, so when deciding whether
-            to include it we would make "no dropout" vs "dropout" a scientific
-            hyperparameter and the dropout rate a nuisance hyperparameter.
-            -   If we decide to add dropout to our pipeline based on this
-                experiment, then the dropout rate would be a nuisance
-                hyperparameter in future experiments.
-    -   Architectural hyperparameters are often scientific or fixed
-        hyperparameters because architecture changes can affect serving and
-        training costs, latency, and memory requirements.
-        -   For example, the number of layers is typically a scientific or fixed
-            hyperparameter since it tends to have dramatic consequences for
-            training speed and memory usage.
--   In some cases, the sets of nuisance and fixed hyperparameters will depend on
-    the values of the scientific hyperparameters.
-    -   For example, suppose we are trying to determine which optimizer out of
-        Nesterov momentum and Adam results in the lowest validation error. The
-        scientific hyperparameter is the `optimizer`, which takes values
-        `{"Nesterov_momentum", "Adam"}`. The value
-        `optimizer="Nesterov_momentum"` introduces the nuisance/fixed
-        hyperparameters `{learning_rate, momentum}`, but the value
-        `optimizer="Adam"` introduces the nuisance/fixed hyperparameters
-        `{learning_rate, beta1, beta2, epsilon}`.
-    -   Hyperparameters that are only present for certain values of the
-        scientific hyperparameters are called **conditional hyperparameters**.
-    -   We should not assume two conditional hyperparameters are the same just
-        because they have the same name! In the above example, the conditional
-        hyperparameter called `learning_rate` is a *different* hyperparameter
-        for `optimizer="Nesterov_momentum"` versus `optimizer="Adam"`. Its role
-        is similar (although not identical) in the two algorithms, but the range
-        of values that work well in each of the optimizers is typically
-        different by several orders of magnitude.
+- 对于一个给定的目标，所有超参数要么是**科学超参数**，要么是**干扰超参数**，要么是**固定超参数**。
+    - 科学超参数是那些我们试图测量的对模型性能的影响。
+    - 干扰超参是那些为了公平地比较科学超参数的不同值而需要优化的超参数。这类似于妨害参数的统计概念[nuisance parameters](https://en.wikipedia.org/wiki/Nuisance_parameter).。
+    - 固定的超参数在本轮实验中会有固定的值。在比较科学超参数的不同值时，这些超参数的值不需要(或者我们不希望)改变。
+        - 通过固定一组实验的某些超参数，我们必须接受从实验中得出的结论可能对其他固定超参数的设置无效。换句话说，固定超参数会对我们从实验中得出的任何结论的真实性造成挑战（因为这些参数是固定的，所以一些结论并不一定100%可靠）。
+- 例如，如果我们的目标是“确定具有更多隐藏层的模型是否会减少验证错误”，那么隐藏层的数量就是一个科学的超参数。
+    - 学习率是一个干扰超参，因为只有在每个层数分别调整学习率的情况下，我们才能公平地比较具有不同隐藏层数的模型(最佳学习率通常取决于模型架构)。
+    - 如果我们在之前的实验中确定了激活函数的最佳选择对模型深度不敏感，或者如果我们愿意限制我们关于隐藏层数的结论，只覆盖这个特定的激活函数选择，那么激活函数可以是一个固定的超参数。或者，如果我们准备为每个隐藏层的数量分别调优它，它可能是一个干扰的参数。
+- 一个特定的超参数是科学超参数、干扰超参还是固定超参数不是超参数固有的，而是根据实验目标而变化的。
+    - 例如，激活函数的选择可以是一个科学的超参数(对于我们的问题，ReLU或tanh是更好的选择吗?)，一个干扰超参(当我们允许几个不同的可能的激活函数时，最好的5层模型比最好的6层模型更好吗?)，或者一个固定的超参数(对于ReLU网络，在特定位置添加批量归一化是否有帮助?)
+
+- 在设计新一轮实验时，我们首先确定实验目标的科学超参数。
+    - 在这个阶段，我们认为所有其他超参数都是干扰超参。
+
+- 接下来，我们将一些干扰超参转换为固定的超参数。
+    - 如果有了无限的资源，我们会把所有非科学的超参数都当作干扰超参，这样我们从实验中得出的结论就不会受到固定超参数值的限制。
+    - 然而，我们试图调优的超参数越多，我们在每次科学超参数设置中调优不够好并最终从实验中得出错误结论的风险就越大。
+        - 我们可以通过增加计算预算来应对这种风险，但通常我们的最大资源预算小于调优所有非科学超参数所需的资源预算。
+    - 我们选择将一个干扰超参转换为一个固定的超参数，根据我们的判断，固定它所带来的警告比将它作为一个干扰超参所带来的代价要小。
+        - 给定的干扰超参与科学超参数的交互作用越多，它对固定其值的破坏就越大。例如，权值衰减强度的最佳值通常取决于模型大小，因此比较不同的模型大小假设一个单一的权值衰减将不是很有见地。
+
+- 尽管我们分配给每个超参数的类型取决于实验目标，但对于某些类别的超参数，我们有以下经验法则:
+
+    - 在各种优化器超参数(例如学习率、动量、学习率计划参数、Adam beta等)中，至少有一些超参数是令人讨厌的干扰参数，因为它们往往与其他变化交互最多。
+        - 它们很少是科学的超参数，因为像“当前训练流程的最佳学习率是多少?”这样的目标并不能提供太多的洞见——无论如何，最佳设置很容易随着下一个训练流程更改而更改。
+        - 尽管由于资源限制，或者当我们有特别有力的证据表明它们不与科学参数相互作用时，我们可能偶尔会固定其中的一些，但我们通常应该假设优化器超参数必须单独调优，以便在科学超参数的不同设置之间进行公平的比较，因此不应该固定他们。
+            - 此外，我们没有先验的正当理由选择一个优化器超参数值而不是另一个(因为它们通常不会影响正向传递或梯度的计算成本)。
+
+    - 相比之下，优化器的选择通常是科学超参数或固定超参数。
+
+        - 如果我们的实验目标是在两个或多个不同的优化器之间进行公平的比较，那么它就是一个科学超参数。“确定哪个优化器在给定数量的步骤中产生的验证错误最低”)。
+        - 或者，我们可能出于多种原因使其成为一个固定的超参数，包括:(1)先前的实验使我们相信我们问题的最佳优化器对当前科学的超参数不敏感;或者(2)我们更喜欢使用这个优化器来比较科学超参数的值，因为它的训练曲线更容易推理;(3)我们更喜欢使用这个优化器，因为它比替代方案使用更少的内存。
+    - 由正则化技术引入的超参数通常是干扰超参数，但是否使用正则化技术是一个科学的或固定的超参数。
+
+        - 例如，dropout增加了代码复杂度，所以在决定是否包含它时，我们将“no dropout”和“dropout”作为一个科学超参数，而dropout率则是一个干扰超参。
+        - 如果我们决定在这个实验的基础上添加dropout到我们的管道中，那么dropout率将是未来实验中一个干扰超参。
+    
+    - 架构超参数通常是科学的或固定的超参数，因为架构更改会影响服务和训练成本、延迟和内存需求。
+        - 例如，层数通常是一个科学的或固定的超参数，因为它往往对训练速度和内存使用有显著的影响。
+
+- 在某些情况下，干扰超参数集和固定超参数集将取决于科学超参数的值。
+
+    - 例如，假设我们试图从Nesterov动量和Adam中确定哪个优化器的验证误差最小。科学超参数是优化器，它接受值`{"Nesterov_momentum", "Adam"}`。`optimizer="Nesterov_momentum"` 引入干扰/固定的超参数`{learning_rate, momentum}`，`optimizer="Adam"`引入干扰/固定的超参数 `{learning_rate, beta1, beta2, epsilon}`.
+    - 只对科学超参数的某些值存在的超参数称为条件超参数。
+    - 我们不应该仅仅因为两个条件超形参有相同的名称就假定它们是相同的!在上面的例子中，条件超参数`learning_rate`对于optimizer="Nesterov_momentum"和optimizer="Adam"是不同的超参数。它在两种算法中的作用相似(尽管不完全相同)，但是在每个优化器中工作良好的值范围通常有几个数量级的差异。
 
 </details>
 
-#### Creating a set of studies
+#### 创建一系列的实验
+
+
+
+<details><summary><em>[Click to expand]</em></summary>
+
+<br>
+
+- 一旦我们确定了科学的和干扰超参，我们就设计了一个“研究”或一系列研究，以朝着实验目标前进。
+    - 一个研究指定了一组超参数配置，以用于后续分析。每个配置被称为“试验”（trial）。
+    - 创建一项研究通常包括选择在不同试验中不同的超参数，选择这些超参数可以取的值(“搜索空间”)，选择试验的数量，以及选择一个自动搜索算法来从搜索空间中采样这些试验。或者，我们可以通过手动指定超参数配置集来创建一个研究。
+
+- 研究的目的是使用不同的科学超参数值运行管道，同时“优化掉”(或“优化掉”)干扰超参，以便在不同的科学超参数值之间进行尽可能公平的比较。
+
+- 在最简单的情况下，我们将为科学参数的每个配置进行单独的研究，其中每个研究都调整了干扰超参。
+
+    - 例如，如果我们的目标是从Nesterov动量和Adam中选择最好的优化器，我们可以创建一个研究，其中`optimizer="Nesterov_momentum"`，干扰超参为{learning_rate, momentum}，另一个研究，其中`optimizer="Adam"`，干扰超参为{learning_rate, beta1, beta2, epsilon}。我们将通过从每个研究中选择性能最好的试验来比较两种优化器。
+    - 我们可以使用任何无梯度优化算法，包括贝叶斯优化或进化算法等方法，来优化干扰超参，尽管我们更喜欢在调优的探索阶段使用准随机搜索，因为它在这种设置中具有各种优势。探索结束后，如果有最先进的贝叶斯优化软件，这是我们的首选。
+
+- 在更复杂的情况下，我们想要比较大量的科学超参数的值，并且进行许多独立的研究是不切实际的，我们可以将科学参数与干扰超参包含在同一个搜索空间中，并使用搜索算法在单个研究中对科学超参数和干扰超参的值进行采样。
+    - 采用这种方法时，条件超参数可能会导致问题，因为很难指定搜索空间，除非干扰超参集对于科学超参数的所有值都是相同的。
+    - 在这种情况下，我们更倾向于使用准随机搜索而不是花哨的黑盒优化工具，因为它确保我们获得科学超参数的相对均匀的采样值。不管搜索算法是什么，我们都需要确保它能以某种方式统一地搜索科学参数。
+
+
+
+</details>
+
+#### 在获取信息和实验成本之间取得平衡
+
+
 
 <details><summary><em>[Click to expand]</em></summary>
 
 <br>
 
 
--   Once we have identified the scientific and nuisance hyperparameters, we
-    design a "study" or sequence of studies to make progress towards the
-    experimental goal.
-    -   A study specifies a set of hyperparameter configurations to be run for
-        subsequent analysis. Each configuration is called a "trial".
-    -   Creating a study typically involves choosing the hyperparameters that
-        will vary across trials, choosing what values those hyperparameters can
-        take on (the "search space"), choosing the number of trials, and
-        choosing an automated search algorithm to sample that many trials from
-        the search space. Alternatively, we could create a study by specifying
-        the set of hyperparameter configurations manually.
--   The purpose of the studies is to run the pipeline with different values of
-    the scientific hyperparameters, while at the same time **"optimizing away"**
-    (or "optimizing over") the nuisance hyperparameters so that comparisons
-    between different values of the scientific hyperparameters are as fair as
-    possible.
--   In the simplest case, we would make a separate study for each configuration
-    of the scientific parameters, where each study tunes over the nuisance
-    hyperparameters.
-    -   For example, if our goal is to select the best optimizer out of Nesterov
-        momentum and Adam, we could create one study in which
-        `optimizer="Nesterov_momentum"` and the nuisance hyperparameters are
-        `{learning_rate, momentum}`, and another study in which
-        `optimizer="Adam"` and the nuisance hyperparameters are `{learning_rate,
-        beta1, beta2, epsilon}`. We would compare the two optimizers by
-        selecting the best performing trial from each study.
-    -   We can use any gradient-free optimization algorithm, including methods
-        such as Bayesian optimization or evolutionary algorithms, to optimize
-        over the nuisance hyperparameters, although
-        [we prefer](#why-use-quasi-random-search-instead-of-more-sophisticated-black-box-optimization-algorithms-during-the-exploration-phase-of-tuning)
-        to use quasi-random search in the
-        [exploration phase](#exploration-vs-exploitation) of tuning because of a
-        variety of advantages it has in this setting.
-        [After exploration concludes](#after-exploration-concludes), if
-        state-of-the-art Bayesian optimization software is available, that is
-        our preferred choice.
--   In the more complicated case where we want to compare a large number of
-    values of the scientific hyperparameters and it is impractical to make that
-    many independent studies, we can include the scientific parameters in the
-    same search space as the nuisance hyperparameters and use a search algorithm
-    to sample values of *both* the scientific and nuisance hyperparameters in a
-    single study.
-    -   When taking this approach, conditional hyperparameters can cause
-        problems since it is hard to specify a search space unless the set of
-        nuisance hyperparameters is the same for all values of the scientific
-        hyperparameters.
-    -   In this case,
-        [our preference](#why-use-quasi-random-search-instead-of-more-sophisticated-black-box-optimization-algorithms-during-the-exploration-phase-of-tuning)
-        for using quasi-random search over fancier black-box optimization tools
-        is even stronger, since it ensures that we obtain a relatively uniform
-        sampling of values of the scientific hyperparameters. Regardless of the
-        search algorithm, we need to make sure somehow that it searches the
-        scientific parameters uniformly.
+- 在设计一项研究或一系列研究时，我们需要分配有限的预算，以充分实现以下三个目标:
+    1. 比较足够多的不同科学超参数值。
+    2. 在足够大的搜索空间内调优干扰超参。
+    3. 对干扰超参的搜索空间进行足够密集的采样。
+
+- 我们越能更好地实现这三个目标，我们就越能从实验中获得更多的见解。
+    - 比较尽可能多的科学超参数值拓宽了我们从实验中获得的见解的范围。
+    - 包括尽可能多的干扰超参，并允许每个干扰超参在尽可能宽的范围内变化，这增加了我们的信心，即在科学超参数的每个配置的搜索空间中存在一个“好”的干扰超参值。
+        - 否则，我们可能会在科学超参数的值之间进行不公平的比较，因为不搜索干扰超参空间的可能区域，其中一些科学参数的值可能存在更好的值。
+    - 尽可能密集地对干扰超参的搜索空间进行采样，这样我们才会更有信心找到搜索空间内的最优值。
+        - 否则，我们可能会在科学参数的值之间进行不公平的比较，因为一些值随着干扰超参的采样而变得更幸运。
+- 不幸的是，这三个维度中的任何一个维度的改进都需要增加试验次数，从而增加资源成本，或者找到一种方法来节省其他维度中的资源。
+    - 每个问题都有自己的特点和计算限制，因此如何在这三个需求中分配资源需要一定程度的领域知识。
+    - 在进行一项研究后，我们总是试图了解这项研究是否足够好地调整了干扰超参(即搜索了足够大的空间)，以便公平地比较科学的超参数(如下文的更详细描述)。
 
 </details>
 
-#### Striking a balance between informative and affordable experiments
+### 从实验结果中获取insight
 
-<details><summary><em>[Click to expand]</em></summary>
+***总结:*** *除了努力实现每组实验的原始科学目标外，还要检查附加问题的清单，如果发现问题，修改实验并重新运行*
+ 
+- 最终，每组实验都有一个特定的目标，我们想要评估实验提供的朝着这个目标的证据。
 
-<br>
+    - 然而，如果我们提出正确的问题，我们经常会发现需要纠正的问题，然后一组给定的实验才能朝着最初的目标取得很大进展。
+        - 如果我们不问这些问题，就可能得出错误的结论。
+    - 由于运行实验可能是昂贵的，我们也想借此机会从每组实验中提取其他有用的见解，即使这些见解与当前的目标没有立即相关。
 
+- 在分析一组给定的实验以朝着最初的目标前进之前，我们应该问自己以下额外的问题:
+    - 搜索空间是否足够大?
+        - 如果一项研究的最佳点在一个或多个维度的搜索空间边界附近，那么搜索可能不够宽。在这种情况下，我们应该进行另一项研究，扩大搜索空间。
+    - 我们从搜索空间中采样了足够多的点吗?
+        - 如果不是，运行更多的点，或者在调优目标中降低目标。
+    - 在每项研究中，有多少比例的试验是不可行的(即试验偏离，得到非常糟糕的损失值，或因为违反了一些隐含的约束而根本无法运行)?
+        - 当研究中有很大一部分点是不可行的，我们应该尝试调整搜索空间以避免采样这些点，这有时需要重新参数化搜索空间。
+        - 在某些情况下，大量的不可行的点可能表明训练代码中的错误。
+    - 模型是否存在优化问题?
+    - 我们能从最佳试验的训练曲线中学到什么?
+        - 例如，最佳试验的训练曲线是否与有问题的过拟合一致?
 
--   When designing a study or sequence of studies, we need to allocate a limited
-    budget in order to adequately achieve the following three desiderata:
-    1.  Comparing enough different values of the scientific hyperparameters.
-    2.  Tuning the nuisance hyperparameters over a large enough search space.
-    3.  Sampling the search space of nuisance hyperparameters densely enough.
--   The better we can achieve these three desiderata, the more insight we can
-    extract from our experiment.
-    -   Comparing as many values of the scientific hyperparameters as possible
-        broadens the scope of the insights we gain from the experiment.
-    -   Including as many nuisance hyperparameters as possible and allowing each
-        nuisance hyperparameter to vary over as wide a range as possible
-        increases our confidence that a "good" value of the nuisance
-        hyperparameters **exists** in the search space for each configuration of
-        the scientific hyperparameters.
-        -   Otherwise, we might make unfair comparisons between values of the
-            scientific hyperparameters by not searching possible regions of the
-            nuisance parameter space where better values might lie for some
-            values of the scientific parameters.
-    -   Sampling the search space of nuisance hyperparameters as densely as
-        possible increases our confidence that any good settings for the
-        nuisance hyperparameters that happen to exist in our search space will
-        be found by the search procedure.
-        -   Otherwise, we might make unfair comparisons between values of the
-            scientific parameters due to some values getting luckier with the
-            sampling of the nuisance hyperparameters.
--   Unfortunately, improvements in *any* of these three dimensions require
-    either increasing the number of trials, and therefore increasing the
-    resource cost, or finding a way to save resources in one of the other
-    dimensions.
-    -   Every problem has its own idiosyncrasies and computational constraints,
-        so how to allocate resources across these three desiderata requires some
-        level of domain knowledge.
-    -   After running a study, we always try to get a sense of whether the study
-        tuned the nuisance hyperparameters well enough (i.e. searched a large
-        enough space extensively enough) to fairly compare the scientific
-        hyperparameters (as described in greater detail
-        [below](#extracting-insight-from-experimental-results)).
+- 如有必要，根据上述问题的答案，改进最近的研究(或研究组)，以改善搜索空间和/或抽样更多试验，或采取其他纠正措施。
 
-</details>
+- 一旦我们回答了上述问题，我们就可以继续评估实验提供的证据，以实现我们最初的目标(例如，评估一个改变是否有用)。
 
-### Extracting insight from experimental results
-
-***Summary:*** *In addition to trying to achieve the original scientific goal of
-each group of experiments, go through a checklist of additional questions and,
-if issues are discovered, revise the experiments and rerun them.*
-
--   Ultimately, each group of experiments has a specific goal and we want to
-    evaluate the evidence the experiments provide toward that goal.
-    -   However, if we ask the right questions, we will often find issues that
-        need to be corrected before a given set of experiments can make much
-        progress towards their original goal.
-        -   If we don’t ask these questions, we may draw incorrect conclusions.
-    -   Since running experiments can be expensive, we also want to take the
-        opportunity to extract other useful insights from each group of
-        experiments, even if these insights are not immediately relevant to the
-        current goal.
--   Before analyzing a given set of experiments to make progress toward their
-    original goal, we should ask ourselves the following additional questions:
-    -   [Is the search space large enough?](#identifying-bad-search-space-boundaries)
-        -   If the optimal point from a study is near the boundary of the search
-            space in one or more dimensions, the search is probably not wide
-            enough. In this case, we should run another study with an expanded
-            search space.
-    -   [Have we sampled enough points from the search space?](#not-sampling-enough-points-in-the-search-space)
-        -   If not, run more points or be less ambitious in the tuning goals.
-    -   What fraction of the trials in each study are **infeasible** (i.e.
-        trials that diverge, get really bad loss values, or fail to run at all
-        because they violate some implicit constraint)?
-        -   When a very large fraction of points in a study are **infeasible**
-            we should try to adjust the search space to avoid sampling such
-            points, which sometimes requires reparameterizing the search space.
-        -   In some cases, a large number of infeasible points can indicate a
-            bug in the training code.
-    -   [Does the model exhibit optimization issues?](#how-can-optimization-failures-be-debugged-and-mitigated)
-    -   [What can we learn from the training curves of the best trials?](#examining-the-training-curves)
-        -   For example, do the best trials have training curves consistent with
-            problematic overfitting?
--   If necessary, based on the answers to the questions above, refine the most
-    recent study (or group of studies) to improve the search space and/or sample
-    more trials, or take some other corrective action.
--   Once we have answered the above questions, we can move on to evaluating the
-    evidence the experiments provide towards our original goal (for example,
-    [evaluating whether a change is useful](#detecting-whether-a-change-is-useful-with-isolation-plots)).
 
 #### Identifying bad search space boundaries
 
