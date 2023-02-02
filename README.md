@@ -439,159 +439,82 @@
 - 一旦我们回答了上述问题，我们就可以继续评估实验提供的证据，以实现我们最初的目标(例如，评估一个改变是否有用)。
 
 
-#### Identifying bad search space boundaries
+#### 识别错误的搜索空间边界
+
+
 
 <details><summary><em>[Click to expand]</em></summary>
 
 <br>
+- 如果最佳参数点靠近其边界，则搜索空间是可疑的。如果我们朝那个方向扩展搜索范围，我们可能会发现更优参数值。
 
+- 为了检查搜索空间边界，我们喜欢在我们称为基本超参数轴图上绘制完成的试验，其中我们绘制验证目标值与其中一个超参数(例如学习率)的关系。图上的每个点都对应一次试验。
 
--   A search space is suspicious if the best point sampled from it is close to
-    its boundary. We might find an even better point if we expanded the search
-    range in that direction.
--   To check search space boundaries, we like to plot completed trials on what
-    we call **basic hyperparameter axis plots** where we plot the validation
-    objective value versus one of the hyperparameters (e.g. learning rate). Each
-    point on the plot corresponds to a single trial.
-    -   The validation objective value for each trial should usually be the best
-        value it achieved over the course of training.
+    - 每个trail的验证目标值通常应该是在训练过程中获得的最优结果。
 
 <p align="center" id="figure-1">
 <img src="assets/bad_search_space.png" width="49%" alt="Example of bad search space boundaries">
 <img src="assets/good_search_space.png" width="49%" alt="Example of good search space boundaries">
 </p>
 
-<p align="center"><b>Figure 1:</b> Examples of bad search space boundaries and acceptable search space boundaries.</p>
+<p align="center"><b>Figure 1:</b> 一个坏的搜索范围和一个良好的搜索范围的比较.左边的最优参数出现在了搜索范围的边界处，说明该搜索边界不是最优的。</p>
 
--   The plots in [Figure 1](#figure-1) show the error rate (lower is better)
-    against the initial learning rate.
--   If the best points cluster towards the edge of a search space (in some
-    dimension), then the search space boundaries might need to be expanded until
-    the best observed point is no longer close to the boundary.
--   Often, a study will include "infeasible" trials that diverge or get very bad
-    results (marked with red Xs in the above plots).
-    -   If all trials are infeasible for learning rates greater than some
-        threshold value, and if the best performing trials have learning rates
-        at the edge of that region, the model [may suffer from stability issues
-        preventing it from accessing higher learning
-        rates](#how-can-optimization-failures-be-debugged-and-mitigated).
+- 图1中的图表显示了错误率(越低越好)与初始学习率的关系。
+- 如果最佳点聚集在搜索空间的边缘(在某些维度上)，那么搜索空间边界可能需要扩展，直到最佳观察点不再靠近边界。
+- 通常，一项研究将包括“不可行”的试验，这些试验偏离或得到非常糟糕的结果(在上面的图中用红色x标记)。
+    - 如果所有的试验对于学习率大于某个阈值都是不可可行的，并且如果表现最好的试验在该区域的边缘有学习率，那么模型可能会受到稳定性问题的影响，从而无法获得更高的学习率。
 
 </details>
 
-#### Not sampling enough points in the search space
+#### 判断在搜索空间中是否采样了足够的点
 
 <details><summary><em>[Click to expand]</em></summary>
 
 <br>
 
+- 一般来说，很难知道搜索空间的采样是否足够密集。🤖
+- 进行更多的试验当然更好，但代价很明显。
+- 因为很难知道我们什么时候已经采样了足够多，我们通常会采样我们能承受的范围，并试图通过反复查看各种超参数轴图来校准我们的直觉信心，并试图获得搜索空间的“好”区域中有多少点。
 
--   In general,
-    [it can be very difficult to know](#how-many-trials-are-needed-to-get-good-results-with-quasi-random-search)
-    if the search space has been sampled densely enough. 🤖
--   Running more trials is of course better, but comes at an obvious cost.
--   Since it is so hard to know when we have sampled enough, we usually sample
-    what we can afford and try to calibrate our intuitive confidence from
-    repeatedly looking at various hyperparameter axis plots and trying to get a
-    sense of how many points are in the "good" region of the search space.
 
 </details>
 
-#### Examining the training curves
-
-<details><summary><em>[Click to expand]</em></summary>
-
-<br>
+#### 检查训练曲线
 
 
-***Summary:*** *Examining the training curves is an easy way to identify common
-failure modes and can help us prioritize what actions to take next.*
 
--   Although in many cases the primary objective of our experiments only
-    requires considering the validation error of each trial, we must be careful
-    when reducing each trial to a single number because it can hide important
-    details about what’s going on below the surface.
--   For every study, we always look at the **training curves** (training error
-    and validation error plotted versus training step over the duration of
-    training) of at least the best few trials.
--   Even if this is not necessary for addressing the primary experimental
-    objective, examining the training curves is an easy way to identify common
-    failure modes and can help us prioritize what actions to take next.
--   When examining the training curves, we are interested in the following
-    questions.
--   Are any of the trials exhibiting **problematic overfitting?**
-    -   Problematic overfitting occurs when the validation error starts
-        *increasing* at some point during training.
-    -   In experimental settings where we optimize away nuisance hyperparameters
-        by selecting the "best" trial for each setting of the scientific
-        hyperparameters, we should check for problematic overfitting in *at
-        least* each of the best trials corresponding to the settings of the
-        scientific hyperparameters that we’re comparing.
-        -   If any of the best trials exhibits problematic overfitting, we
-            usually want to re-run the experiment with additional regularization
-            techniques and/or better tune the existing regularization parameters
-            before comparing the values of the scientific hyperparameters.
-            -   This may not apply if the scientific hyperparameters include
-                regularization parameters, since then it would not be surprising
-                if low-strength settings of those regularization parameters
-                resulted in problematic overfitting.
-        -   Reducing overfitting is often straightforward using common
-            regularization techniques that add minimal code complexity or extra
-            computation (e.g. dropout, label smoothing, weight decay), so it’s
-            usually no big deal to add one or more of these to the next round of
-            experiments.
-        -   For example, if the scientific hyperparameter is "number of hidden
-            layers" and the best trial that uses the largest number of hidden
-            layers exhibited problematic overfitting, then we would usually
-            prefer to try it again with additional regularization instead of
-            immediately selecting the smaller number of hidden layers.
-        -   Even if none of the "best" trials are exhibiting problematic
-            overfitting, there might still be a problem if it occurs in *any* of
-            the trials.
-            -   Selecting the best trial suppresses configurations exhibiting
-                problematic overfitting and favors those that do not. In other
-                words, it will favor configurations with more regularization.
-            -   However, anything that makes training worse can act as a
-                regularizer, even if it wasn't intended that way. For example,
-                choosing a smaller learning rate can regularize training by
-                hobbling the optimization process, but we typically don't want
-                to choose the learning rate this way.
-            -   So we must be aware that the "best" trial for each setting of
-                the scientific hyperparameters might be selected in such a way
-                that favors "bad" values of some of the scientific or nuisance
-                hyperparameters.
--   Is there high step-to-step variance in the training or validation error late
-    in training?
-    -   If so, this could interfere with our ability to compare different values
-        of the scientific hyperparameters (since each trial randomly ends on a
-        "lucky" or "unlucky" step) and our ability to reproduce the result of
-        the best trial in production (since the production model might not end
-        on the same "lucky" step as in the study).
-    -   The most likely causes of step-to-step variance are batch variance (from
-        randomly sampling examples from the training set for each batch), small
-        validation sets, and using a learning rate that’s too high late in
-        training.
-    -   Possible remedies include increasing the batch size, obtaining more
-        validation data, using learning rate decay, or using Polyak averaging.
--   Are the trials still improving at the end of training?
-    -   If so, this indicates that we are in the
-        ["compute bound" regime](#determining-the-number-of-steps-for-each-training-run)
-        and we may benefit from
-        [increasing the number of training steps](#Deciding-how-long-to-train-when-training-is-compute-bound)
-        or changing the learning rate schedule.
--   Has performance on the training and validation sets saturated long before
-    the final training step?
-    -   If so, this indicates that we are in the
-        ["not compute-bound"](#determining-the-number-of-steps-for-each-training-run)
-        regime and that we may be able to
-        [decrease the number of training steps](#deciding-how-long-to-train-when-training-is-not-compute-bound).
--   Although we cannot enumerate them all, there are many other additional
-    behaviors that can become evident from examining the training curves (e.g.
-    training loss *increasing* during training usually indicates a bug in the
-    training pipeline).
+***总结:*** *检查训练曲线是识别常见故障模式的简单方法，可以帮助我们优先考虑下一步要采取的行动。*
+
+- 虽然在许多情况下，我们实验的主要目标只需要考虑每次试验的验证误差，但在将每次试验减少到单个数字时，我们必须小心，因为它可能隐藏了表面之下发生的事情的重要细节。
+- 对于每一项研究，我们总是查看至少最好的几个试验的训练曲线(训练误差和验证误差与训练持续时间内的训练步骤的关系)。
+- 即使这不是解决主要实验目标所必需的，检查训练曲线是确定常见故障模式的简单方法，并可以帮助我们优先考虑下一步采取的行动。
+- 在检查训练曲线时，我们对以下问题感兴趣。
+- 是否有任何试验显示出有过拟合的问题?
+    - 当验证错误在训练过程中的某个点开始增加时，就会出现问题过拟合。
+    - 在实验设置中，我们通过为每个科学超参数设置选择“最佳”试验来优化干扰超参，我们应该检查至少每个与我们正在比较的科学超参数设置对应的最佳试验中是否有问题过拟合。
+        - 如果任何一个最佳试验显示出有问题的过拟合，我们通常希望在比较科学超参数的值之前，使用额外的正则化技术重新运行实验和/或更好地调整现有的正则化参数。
+            - 如果科学超参数包括正则化参数，这可能不适用，因为如果这些正则化参数的低强度设置导致有过拟合问题也就不足为奇了。
+    - 减少过拟合通常是简单的，使用常见的正则化技术，添加最小的代码复杂性或额外的计算(例如，dropout，标签平滑，权重衰减)，所以在下一轮实验中添加一个或多个这样的技术通常不是什么大问题。
+    - 例如，如果科学超参数是“隐藏层数”，而使用最大隐藏层数的最佳试验表现出有问题的过拟合，那么我们通常更喜欢用额外的正则化再次尝试，而不是立即选择较小数量的隐藏层。
+    - 即使没有一个“最佳”试验表现出过拟合，如果它发生在任何一个试验中，仍然可能是一个问题。
+        - 选择最佳的参数抑制了表现出有问题的过拟合的配置，并有利于那些没有过拟合的配置。换句话说，它将倾向于更正则化的配置。
+        - 然而，任何使训练变得更糟的东西都可以作为正则化因子，即使它不是故意的。例如，选择较小的学习率可以通过阻碍优化过程来正则化训练，但我们通常不希望以这种方式选择学习率。
+        - 因此，我们必须意识到，科学超参数的每一种设置的“最佳”试验可能导致某些科学超参数或干扰超参选到“坏”值。
+- 在训练中是否存在错误率变化较大的问题（loss曲线不平滑）?
+    - 如果是这样，这可能会干扰我们比较不同科学超参数值的能力(因为每次试验随机地结束于“幸运”或“不幸”步骤)，以及我们复现最佳试验结果的能力(因为生产模型可能不会像研究中那样结束于相同的“幸运”步骤)。
+    - 最可能导致步进方差（loss不平滑）的原因是Batch数据方差较大(因为每个batch是随机抽样本)、验证集过小，以及在训练后期使用过高的学习率。
+    - 可能的补救措施包括增加Batchsize大小、获得更多验证数据、使用学习率衰减或使用Polyak平均。
+- 训练结束后，试验是否仍在改善?
+    -  如果是这样，这表明我们处于“计算约束”状态，我们可能会从增加训练步骤的数量或改变学习率计划中受益。
+- 在最后的训练步骤之前，训练和验证集的性能已经饱和了吗?
+    - 如果是这样，这表明我们处于“不受计算限制”的状态，并且我们可能能够减少训练步骤的数量。
+- 虽然我们无法一一列举，但通过检查训练曲线，可以明显地发现许多其他的行为(例如，训练过程中训练损失的增加通常表明训练管道中存在错误)。
+ 
 
 </details>
 
-#### Detecting whether a change is useful with isolation plots
+#### 使用隔离图检测更改是否有用
+
 
 <details><summary><em>[Click to expand]</em></summary>
 
@@ -603,31 +526,16 @@ failure modes and can help us prioritize what actions to take next.*
 trained on ImageNet.">
 </p>
 
-<p align="center"><b>Figure 2:</b> Isolation plot that investigates the best value of weight decay for ResNet-50 trained on ImageNet.</p>
+<p align="center"><b>Figure 2:</b>研究在ImageNet上训练的ResNet-50的权重衰减的最佳值的隔离图。</p>
 
--   Often, the goal of a set of experiments is to compare different values of a
-    scientific hyperparameter.
-    -   For example, we may want to determine the value of weight decay that
-        results in the best validation error.
--   An **isolation plot** is a special case of the basic hyper-parameter axis
-    plot. Each point on an isolation plot corresponds to the performance of the
-    *best* trial across some (or all) of the nuisance hyperparameters.
-    -   In other words, we plot the model performance after "optimizing away"
-        the nuisance hyperparameters.
--   An isolation plot makes it easier to perform an apples-to-apples comparison
-    between different values of the scientific hyperparameter.
--   For example, [Figure 2](#figure-2) reveals the value of weight decay that
-    produces the best validation performance for a particular configuration of
-    ResNet-50 trained on ImageNet.
-    -   If our goal is to determine whether to include weight decay at all, then
-        we would compare the best point from this plot against the baseline of
-        no weight decay. For a fair comparison, the baseline should also have
-        its learning rate equally well tuned.
--   When we have data generated by (quasi)random search and are considering a
-    continuous hyperparameter for an isolation plot, we can approximate the
-    isolation plot by bucketing the x-axis values of the basic hyperparameter
-    axis plot and taking the best trial in each vertical slice defined by the
-    buckets.
+- 通常，一组实验的目标是比较科学超参数的不同值。
+    - 例如，我们可能想要确定导致最佳验证错误的权重衰减值。
+- 隔离图是基本超参数轴图的一种特殊情况。隔离图上的每个点对应于在一些(或全部)干扰超参上的最佳试验的性能。
+    - 换句话说，我们在“优化掉”干扰超参后绘制模型性能。
+- 使用隔离图可以更容易地在科学超参数的不同值之间进行比较。
+- 例如，图2显示了对于在ImageNet上训练的ResNet-50的特定配置产生最佳验证性能的权重衰减值（weight decay）。
+    - 如果我们的目标是确定是否包含权重衰减，那么我们将比较该图中的最佳点与没有权重衰减的基线。为了进行公平的比较，基线还应该对其学习率进行同样良好的调整。
+- 当我们拥有由(准)随机搜索生成的数据并考虑隔离图的连续超参数时，我们可以通过将基本超参数轴图的x轴值分桶并在每个桶切片中选择最优结果来近似隔离图。
 
 </details>
 
@@ -637,18 +545,10 @@ trained on ImageNet.">
 
 <br>
 
--   The more effort it is to generate plots, the less likely we are to look at
-    them as much as we should, so it behooves us to set up our infrastructure to
-    automatically produce as many of them as possible.
--   At a minimum, we automatically generate basic hyperparameter axis plots for
-    all hyperparameters that we vary in an experiment.
--   Additionally, we automatically produce training curves for all trials and
-    make it as easy as possible to find the best few trials of each study and
-    examine their training curves.
--   There are many other potential plots and visualizations we can add that can
-    be useful. Although the ones described above are a good starting point, to
-    paraphrase Geoffrey Hinton, "Every time you plot something new, you learn
-    something new."
+- 生成图表所花费的精力越多，我们就可能很难尽可能多得查看它们，所以我们有必要设置基础设施来自动生成尽可能多的图。
+- 至少，我们会自动为我们在实验中改变的所有超参数生成基本超参数轴图。
+- 此外，我们自动生成所有试验的训练曲线，并尽可能容易地找到每个研究中最好的几个试验，并检查它们的训练曲线。
+- 我们还可以添加许多其他有用的潜在图形和可视化。虽然上面描述的是一个很好的起点，但套用Geoffrey Hinton的话，“每次你画出一些新的图形，你就会学到一些新东西。”
 
 </details>
 
